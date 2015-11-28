@@ -147,7 +147,7 @@ def test(valid, total_probs, cuisine_probs):
         if str(cuisine_more_prob) == sample['cuisine']:
             good +=1.0
     result = good/total
-    print 'The empirical risk is '+ `result`+'\n\n'
+    print 'The empirical good result rate is '+ `result`+'\n\n'
     return result
 
 
