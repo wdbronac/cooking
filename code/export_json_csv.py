@@ -2,46 +2,55 @@
 import pandas as pd, json
 import matplotlib, os
 
+# Se placer dans le répertoire /code
+
 fichier = "../data"
 chemin = fichier+"/train.json"
 
 json_data = open(chemin)
 train = json.load(json_data)
 
-""" SYNTAXE
+"""
+SYNTAXE du fichier json
 train[0]
 train[0]['cuisine']
 train[0]['ingredients']
 train[0]['ingredients'][0]
 """
+##############################
+# TOUT METTRE DANS DES CSV : 
+##############################
+# lancer construire_db(train,'../data',"") pour construire tous les CSVs des données d'entrainement
+# lancer construire_db(test,'../data',"_test") pour construire tous les CSVs des données de test
 
-# TOUT METTRE DANS DES CSV
-
-def construire_db():
+def construire_db(json,fichier,nom=""):  # par défaut : nom="" pour les données d'entrainement
+                                         # pour les données de test : nom="_test"
     print "prétraitement"
-    enlever_virgules()
-    print "cuisines"
-    build_csv_cuisines()
+    enlever_virgules(json)
+    if nom=="":
+        print "cuisines"
+        build_csv_cuisines(json,fichier,nom)
     print "ingrédients"
-    build_csv_ingredients()
+    build_csv_ingredients(json,fichier,nom)
     print "ingrédients - plats"
-    build_relations_ingredients_plats()
-    print "cuisines - plats"
-    build_relations_plats_cuisines()
+    build_relations_ingredients_plats(json,fichier,nom)
+    if nom=="":
+        print "cuisines - plats"
+        build_relations_plats_cuisines(json,fichier,nom)
     
 
 # TRAITEMENT DU JSON (on enlève les virgules des ingrédients)
 
-def enlever_virgules():
-    for plat in train:
+def enlever_virgules(json):
+    for plat in json:
         for i,ing in enumerate(plat['ingredients']):
             plat['ingredients'][i]=ing.replace(",","")
     
 # TRAITEMENT DES INGREDIENTS
 
-def liste_ingredients_from_json():
-    N = len(train)
-    i1 = [train[k]['ingredients'] for k in range(N)]
+def liste_ingredients_from_json(json):
+    N = len(json)
+    i1 = [json[k]['ingredients'] for k in range(N)]
     i2 = matplotlib.cbook.flatten(i1)
     i3 = [i for i in i2]
     i3.sort()
@@ -54,16 +63,16 @@ def liste_ingredients_from_json():
             k=k+1
     return i3
         
-def build_csv_ingredients():
-    liste = liste_ingredients_from_json()
+def build_csv_ingredients(json,fichier,nom):
+    liste = liste_ingredients_from_json(json)
     header = ["id","nom"]
     T = [header]
     for i,ing in enumerate(liste):
         T.append([str(i+1),ing])
-    ecrire_csv(fichier+"/ingredients_db.csv",T)
+    ecrire_csv(fichier+"/ingredients_db"+nom+".csv",T)
     
-def download_ingredients_csv():
-    D = download_csv(fichier+"/ingredients_db.csv")
+def download_ingredients_csv(fichier,nom):
+    D = download_csv(fichier+"/ingredients_db"+nom+".csv")
     for d in D[1:]:
         d[0] = int(d[0])
         while len(d)>2:
@@ -88,20 +97,20 @@ def id_by_name(nom,I):
         return 1/0
     return I[k0][0]
 
-def build_relations_ingredients_plats():
-    H,I = download_ingredients_csv()
+def build_relations_ingredients_plats(json,fichier,nom):
+    H,I = download_ingredients_csv(fichier,nom)
     T = [["id_plat","id_ingredient"]]
-    for plat in train:
+    for plat in json:
         #print plat['id'] #,plat['ingredients']
         for ing in plat['ingredients']:
             T.append([str(plat['id']),str(id_by_name(str(ing.encode('utf-8')),I))])
-    ecrire_csv("data/ingredient_plat.csv",T)
+    ecrire_csv(fichier+"/ingredient_plat"+nom+".csv",T)
     
 # CUISINES
 
-def build_csv_cuisines():
+def build_csv_cuisines(json,fichier,nom):
     CUISINES = []
-    for plat in train:
+    for plat in json:
         CUISINES.append(plat['cuisine'].encode('utf-8'))
     CUISINES.sort()
     remove_duplicates(CUISINES)
@@ -109,10 +118,9 @@ def build_csv_cuisines():
     T = [header]
     for i,c in enumerate(CUISINES):
         T.append([str(i+1),c])
-    ecrire_csv(fichier+"/cuisines_db.csv",T)  
+    ecrire_csv(fichier+"/cuisines_db"+nom+".csv",T)  
       
-def download_cuisines_csv():
-    print fichier+"/cuisines_db.csv"
+def download_cuisines_csv(fichier,nom):
     D = download_csv(fichier+"/cuisines_db.csv")
     for d in D[1:]:
         d[0] = int(d[0])
@@ -121,12 +129,12 @@ def download_cuisines_csv():
 # RELATIONS PLAT - CUISINE
 
 
-def build_relations_plats_cuisines():
-    H,C = download_cuisines_csv()
+def build_relations_plats_cuisines(json,fichier,nom):
+    H,C = download_cuisines_csv(fichier,nom)
     T = [["id_plat","id_cuisine"]]
-    for plat in train:
+    for plat in json:
         T.append([str(plat['id']),str(id_by_name(str(plat['cuisine'].encode('utf-8')),C))])
-    ecrire_csv(fichier+"/cuisine_plat.csv",T)
+    ecrire_csv(fichier+"/cuisine_plat"+nom+".csv",T)
     
 # FONCTIONS GENERALES
 
@@ -139,7 +147,7 @@ def remove_duplicates(tab):
         else:
             k=k+1
         
-def download_csv(path):
+def download_csv(path):     # lent pour les gros fichiers
     sep = ','
     T = []
     table = open(path,"r")
@@ -168,6 +176,29 @@ def download_csv(path):
             erase = False
     return T
     
+def download_csv2(path):        # beaucoup plus rapide !
+    print "téléchargement de "+path
+    sep = ','
+    T = []
+    table = open(path,"r")
+    db = table.read()
+    table.close()
+    
+    k=0
+    mot = ""
+    line = []
+    while k<len(db):
+        k1 = k+1
+        while k1<len(db)-1 and db[k1] not in [sep,'\n']:
+            k1 += 1
+        mot = db[k:k1]
+        k=k1+1
+        line.append(mot)
+        if db[k1] == '\n':
+            T.append(line[:])
+            line = []
+    return T
+            
 def ecrire_csv(path,tableau):
     csv = ""
     sep = ","   # séparateur
