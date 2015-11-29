@@ -2,7 +2,8 @@
 import pandas as pd, json
 import matplotlib, os
 
-chemin = "../data/train.json"
+fichier = "../data"
+chemin = fichier+"/train.json"
 
 json_data = open(chemin)
 train = json.load(json_data)
@@ -59,13 +60,12 @@ def build_csv_ingredients():
     T = [header]
     for i,ing in enumerate(liste):
         T.append([str(i+1),ing])
-    ecrire_csv("data/ingredients_db.csv",T)
+    ecrire_csv(fichier+"/ingredients_db.csv",T)
     
 def download_ingredients_csv():
-    D = download_csv("data/ingredients_db.csv")
+    D = download_csv(fichier+"/ingredients_db.csv")
     for d in D[1:]:
         d[0] = int(d[0])
-        st = d[1]
         while len(d)>2:
             d[1] = d[1]+","+d.pop(2)        
     return D[0],D[1:]
@@ -109,10 +109,11 @@ def build_csv_cuisines():
     T = [header]
     for i,c in enumerate(CUISINES):
         T.append([str(i+1),c])
-    ecrire_csv("data/cuisines_db.csv",T)  
+    ecrire_csv(fichier+"/cuisines_db.csv",T)  
       
 def download_cuisines_csv():
-    D = download_csv("data/cuisines_db.csv")
+    print fichier+"/cuisines_db.csv"
+    D = download_csv(fichier+"/cuisines_db.csv")
     for d in D[1:]:
         d[0] = int(d[0])
     return D[0],D[1:]
@@ -125,7 +126,7 @@ def build_relations_plats_cuisines():
     T = [["id_plat","id_cuisine"]]
     for plat in train:
         T.append([str(plat['id']),str(id_by_name(str(plat['cuisine'].encode('utf-8')),C))])
-    ecrire_csv("data/cuisine_plat.csv",T)
+    ecrire_csv(fichier+"/cuisine_plat.csv",T)
     
 # FONCTIONS GENERALES
 
