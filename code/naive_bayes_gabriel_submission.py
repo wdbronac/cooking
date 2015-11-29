@@ -9,7 +9,7 @@ import naive_bayes_gabriel as nbg
 
 fichier = "../data"
 chemin = fichier+"/test.json"
-nom_soumission = "submission"
+nom_soumission = "submission_0.2"
 H,I = imp.download_ingredients_csv(fichier,"")
 H,C = imp.download_cuisines_csv(fichier,"")
 
@@ -25,6 +25,7 @@ def trouver_id_ingredient(ing):
 def base_de_test():
     TEST = []
     for i in range(len(test)):
+        if i%(len(test)/10)==0: print int(i*100.0/len(test)),"%"
         idplat = test[i]['id']
         liste = []
         for ing in test[i]['ingredients']:

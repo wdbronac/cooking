@@ -6,7 +6,7 @@ import export_json_csv as imp, math
 # Ce code établit un modèle sur une proportion PROP des données
 # Les données restantes sont utilisées pour un test
 
-PROP = 0.99
+PROP = 1
 
 
 print "Téléchargement des données..."
@@ -141,7 +141,7 @@ for cuis in C:
     CONST_CUIS.append(CON)
 
 def proba_cuisine_sachant_ingredients(c,ingredients):
-    Pcuisine = NC[c-1] # ou CUISINES_TOT[c]
+    Pcuisine = CUISINES_TOT[(c-1)%20+1]  #NC[c-1] #
     const_cuisine = CONST_CUIS[c-1]
     P = Pcuisine/const_cuisine
     p=0
@@ -203,8 +203,9 @@ def analyse_confusion(MC):  # on analyse la matrice de confusion (evaluate_model
     diag = [MC[i][i] for i in range(len(MC))]
     err = [sum(MC[i][j] for j in range(len(MC)) if i!=j) for i in range(len(MC))]
     B,M = sum(diag),sum(err)
-    print "Bien classés : ",B, " => ",float(B)/(B+M)*100,"%"
-    print "Mal classés : ",M, " => ",float(M)/(B+M)*100,"%"
+    if B+M>0:
+        print "Bien classés : ",B, " => ",float(B)/(B+M)*100,"%"
+        print "Mal classés : ",M, " => ",float(M)/(B+M)*100,"%"
     return diag, B, err, M 
     
 CONFUSION = evaluate_model(CP_test)
