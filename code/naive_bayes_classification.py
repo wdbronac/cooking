@@ -26,6 +26,7 @@ def load_data(path, proportion):  #proportion = 1: all training set is used
 
 #constructs an empty dictionary
 def init_total_probs(train, overwrite = False):
+    fill = 1.0/1000000.0 #we will fill the matrix with this probability: this is made not to multiply by 0 in the probability evaluation
     if(overwrite == False and  os.path.isfile('total_probs_init.npy')): #if there is already an initial model and we do not want to overwrite it
             print 'Loading the initial total probabilities matrix...'
             total_probs_init = np.load('total_probs_init.npy').item()
@@ -51,7 +52,7 @@ def init_total_probs(train, overwrite = False):
         for ingredient in sample['ingredients']: 
             if ingredient not in total_probs_init[total_probs_init.keys()[0]][0:, 0]: #if the ingredient is not in the list of ingredients of the first entry of the dict
                 for cuisine in total_probs_init.keys(): #append it to the list of ingredients of every entry of the dictionary
-                    total_probs_init[cuisine] = np.append(total_probs_init[cuisine],[[ingredient, 0]], axis = 0)
+                    total_probs_init[cuisine] = np.append(total_probs_init[cuisine],[[ingredient, fill]], axis = 0)
     print '100% \nEmpty dictionary built.\n'
     print 'Saving it...'
     np.save('total_probs_init.npy', total_probs_init)
@@ -166,7 +167,7 @@ def test(valid, total_probs, cuisine_probs):
 
 if  __name__ == '__main__':
     #launch the program with splitting the training set into test set and validation set, and computing the risk
-    train, valid = load_data('../data/train.json', 0.9)
-    total_probs_init = init_total_probs(train, overwrite = False)
-    total_probs, cuisine_probs = build_model(train, total_probs_init, overwrite = False)
-    tab_results, result = test(valid, total_probs, cuisine_probs)
+    train, valid = load_data('../data/train.json', 1.0)
+    total_probs_init = init_total_probs(train, overwrite = True)
+    total_probs, cuisine_probs = build_model(train, total_probs_init, overwrite = True)
+    #tab_results, result = test(valid, total_probs, cuisine_probs)
