@@ -1,10 +1,11 @@
+import sys
 import csv
 import pandas as pd
 from multiprocessing import Pool
 import naive_bayes_classification as NB
 
 
-number_cores = 3
+number_cores = int(sys.argv[1])
 
 train, valid = NB.load_data('../data/train.json', 1.0)
 test, valid = NB.load_data('../data/test.json', 1.0)
