@@ -2,7 +2,7 @@
 import pandas as pd, json
 import matplotlib, os
 
-chemin = "data/train.json"
+chemin = "../data/train.json"
 
 json_data = open(chemin)
 train = json.load(json_data)

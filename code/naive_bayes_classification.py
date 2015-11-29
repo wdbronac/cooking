@@ -127,7 +127,15 @@ def predict_class(sample, total_probs, cuisine_probs):
     cuisine_more_prob = max(score.iterkeys(), key=(lambda key: score[key]))
     return cuisine_more_prob
 
+
+
+
 def test(valid, total_probs, cuisine_probs):
+    
+    #initializing the tab for the results
+    list_cuisines = cuisine_probs.keys()
+    tab_results = pd.DataFrame(0, columns = list_cuisines, index = list_cuisines)
+
     print 'Computing empirical risk on the validation set.'
     total = 0.0
     good = 0.0
@@ -144,11 +152,14 @@ def test(valid, total_probs, cuisine_probs):
         else: done = 0
         total += 1.0
         cuisine_more_prob =  predict_class(sample, total_probs, cuisine_probs)
+        tab_results[cuisine_more_prob][ sample['cuisine']] +=1 #add the result in the tab
         if str(cuisine_more_prob) == sample['cuisine']:
             good +=1.0
-    result = good/total
-    print 'The empirical good result rate is '+ `result`+'\n\n'
-    return result
+    result = 1.0-(good/total)
+    print 'The empirical risk on the validation set is '+ `result`+'\n\n'
+    print 'The tab of the repartition of results is: (rows: predicted cuisine, columns: real cuisine)'
+    print tab_results
+    return tab_results, result
 
 
 
@@ -156,7 +167,6 @@ def test(valid, total_probs, cuisine_probs):
 if  __name__ == '__main__':
     #launch the program with splitting the training set into test set and validation set, and computing the risk
     train, valid = load_data('../data/train.json', 0.9)
-    total_probs_init = init_total_probs(train, overwrite = True)
-    total_probs, cuisine_probs = build_model(train, total_probs_init, overwrite = True)
-    result = test(valid, total_probs, cuisine_probs)
-    print result
+    total_probs_init = init_total_probs(train, overwrite = False)
+    total_probs, cuisine_probs = build_model(train, total_probs_init, overwrite = False)
+    tab_results, result = test(valid, total_probs, cuisine_probs)
